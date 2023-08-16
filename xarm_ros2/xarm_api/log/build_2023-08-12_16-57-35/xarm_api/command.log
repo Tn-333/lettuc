@@ -1,0 +1,2 @@
+Invoking command in '/home/ikedalab/ros2_ws/src/xarm_ros2/xarm_api/build/xarm_api': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake /home/ikedalab/ros2_ws/src/xarm_ros2/xarm_api -DCMAKE_INSTALL_PREFIX=/home/ikedalab/ros2_ws/src/xarm_ros2/xarm_api/install/xarm_api
+Invoked command in '/home/ikedalab/ros2_ws/src/xarm_ros2/xarm_api/build/xarm_api' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake /home/ikedalab/ros2_ws/src/xarm_ros2/xarm_api -DCMAKE_INSTALL_PREFIX=/home/ikedalab/ros2_ws/src/xarm_ros2/xarm_api/install/xarm_api
