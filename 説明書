@@ -1,0 +1,61 @@
+1.xArmを起動し,LANケーブルをPCへ接続する
+2.送信用マイコンESP32をPCにUSB接続する
+3.pcのipアドレスを以下のように変更する。
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+アドレス	:192.168.1.12
+ネットマスク	:255.255.255.0
+ゲートウェイ	:192.168.1.1
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+4.プロキシは無効にする
+
+5.ターミナルを開きxarm_wsに移動する。
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+source /opt/ros/foxy/setup.bash
+source install/setup.bash
+cd ros2_ws/
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+6.以下のコマンドを入力する
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+colcon build
+ros2 launch xarm_api xarm7_driver.launch.py robot_ip:=192.168.1.235
+ros2 launch xarm_controller xarm7_control_rviz_display.launch.py robot_ip:=192.168.1.235 [add_gripper:=true]
+
+ros2 service call /xarm/motion_enable xarm_msgs/srv/SetInt16ById "{id: 8, data: 1}"
+ros2 service call /xarm/set_mode xarm_msgs/srv/SetInt16 "{data: 0}"
+ros2 service call /xarm/set_state xarm_msgs/srv/SetInt16 "{data: 0}"
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+参考；https://github.com/xArm-Developer/xarm_ros2/tree/foxy
+
+7.以下のコマンド入力することで動作が始まる
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ros2 run lettuce_harvest sample_arm_controller 
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+動かしているプログラムは
+xarm_ws>>>src>>>lettuce_harvest>>>src内にある
+
+
+
+
+-----------------------------------------------------------------------------
+
+アームが変な角度に行って動かせなくなったとき＞＞＞xarm studioというソフトを用いて原点に戻していた
+
+エンドエフェクタ単体を動作させるとき
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB0 -v6
+参考:https://qiita.com/ousagi_sama/items/b4eb3d9c6b337cbe1b05
+
+閉じるとき
+ros2 topic pub --once /micro_ros_arduino_subscriber std_msgs/Int32 "data: 0"
+開くとき
+ros2 topic pub --once /micro_ros_arduino_subscriber std_msgs/Int32 "data: 256"
+
+
+
+
+アームだけを動作させるとき
+ros2 service call /xarm/set_position xarm_msgs/srv/MoveCartesian "{pose: [300, 0, 250, 3.14, 0, 0], speed: 50, acc: 500, mvtime: 0}"
+
+
