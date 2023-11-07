@@ -6,9 +6,6 @@ from rclpy.node import Node
 from xarm_msgs.srv import SetDigitalIO
 from std_msgs.msg import String
 
-
-
-
 class AutoOpenClose(Node):
     def __init__(self):
         super().__init__("auto_open_close")
@@ -19,7 +16,6 @@ class AutoOpenClose(Node):
         self.req = SetDigitalIO.Request()
 
         self.subscription = self.create_subscription(String, "auto_open_close", self.send_request, 10)
-        self.subscription
 
     def send_request(self, effector_signal):
         self.req.ionum = 0
@@ -33,17 +29,14 @@ class AutoOpenClose(Node):
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
 
-
 def main(argv=None):
     rclpy.init(args=argv)
 
     auto_open_close = AutoOpenClose()
-    response = auto_open_close.send_request(True)  
     auto_open_close.get_logger().info("open/close")
 
     auto_open_close.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main(sys.argv)

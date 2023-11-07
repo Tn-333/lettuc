@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'open_close_node = auto_open_close.open_close_node:main'
+            'open_close_node = auto_open_close.open_close_node:main',
+            'demo_pub = auto_open_close.open_close_demo_publisher:main',
+            'demo_sub = auto_open_close.open_close_demo_subscriber:main',
         ],
     },
 )
