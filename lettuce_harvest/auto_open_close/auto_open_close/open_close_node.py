@@ -15,7 +15,7 @@ class AutoOpenClose(Node):
             self.get_logger().info("service not available, waiting again...")
         self.req = SetDigitalIO.Request()
 
-        self.subscription = self.create_subscription(String, "auto_open_close", self.send_request, 10)
+        self.subscription = self.create_subscription(String, "auto_open_close_msg", self.send_request, 10)
 
     def send_request(self, effector_signal):
         self.req.ionum = 0
