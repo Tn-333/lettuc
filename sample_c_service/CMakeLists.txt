@@ -25,8 +25,12 @@ find_package(xarm_msgs REQUIRED)
 add_executable(c_service_sample src/c_service_sample.cpp)
 ament_target_dependencies(c_service_sample rclcpp xarm_msgs)
 
+add_executable(service_function_test src/c_service_test.cpp)
+ament_target_dependencies(service_function_test rclcpp xarm_msgs)
+
 install(TARGETS 
   c_service_sample
+  service_function_test
   DESTINATION lib/${PROJECT_NAME}
 )
 
