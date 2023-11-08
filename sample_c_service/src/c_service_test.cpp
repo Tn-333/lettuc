@@ -12,13 +12,16 @@ using namespace std::chrono_literals;
 void auto_open_close(rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr client, bool open_close_flag);
 
 void auto_open_close(rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr client, bool open_close_flag) {
+    std::string show_msg = "";
     auto request = std::make_shared<xarm_msgs::srv::SetDigitalIO::Request>();
     request->ionum = 0;
 
     if (open_close_flag) {
-        request->value = 0; // オープン
+        request->value = 0; // open
+        show_msg = "open";
     } else {
-        request->value = 1; // クローズ
+        request->value = 1; // close
+        show_msg = "close";
     }
 
     while (!client->wait_for_service(1s)) {
@@ -29,6 +32,7 @@ void auto_open_close(rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr cli
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "サービスが利用できません、再度待機中...");
     }
 
+    std::cout << show_msg << std::endl;
     auto result = client->async_send_request(request);
 }
 
@@ -40,7 +44,7 @@ int main(int argc, char **argv) {
         node->create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
 
     auto_open_close(client, true);
-    // 結果待機
+    // wait result
 
     rclcpp::shutdown();
     return 0;
