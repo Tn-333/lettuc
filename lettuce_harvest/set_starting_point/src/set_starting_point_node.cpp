@@ -1,6 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
 
-#include <std_msgs/msg/String.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <xarm_msgs/srv/move_cartesian.hpp>
 #include <xarm_msgs/srv/set_digital_io.hpp>
 

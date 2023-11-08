@@ -20,10 +20,11 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(xarm_msgs REQUIRED)
 find_package(origin_coordinate_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 
 add_executable(set_starting_point_node src/set_starting_point_node.cpp)
-ament_target_dependencies(set_starting_point_node rclcpp xarm_msgs origin_coordinate_msgs)
+ament_target_dependencies(set_starting_point_node rclcpp xarm_msgs origin_coordinate_msgs std_msgs)
 
 target_include_directories(set_starting_point_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
