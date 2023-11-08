@@ -21,8 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             'open_close_node = auto_open_close.open_close_node:main',
-            'demo_pub = auto_open_close.open_close_demo_publisher:main',
-            'demo_sub = auto_open_close.open_close_demo_subscriber:main',
+            'open_close_test = auto_open_close.open_close_test_publish:main',
+            'demo_pub_for_arm = auto_open_close.publish_for_arm:main',
         ],
     },
 )

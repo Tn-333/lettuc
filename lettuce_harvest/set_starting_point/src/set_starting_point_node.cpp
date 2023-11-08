@@ -11,19 +11,24 @@ using namespace std::chrono_literals;
 class SetStartingPoint : public rclcpp::Node {
  public:
   SetStartingPoint() : Node("set_starting_point", rclcpp::NodeOptions()){
+    arm_client = this->create_client<xarm_msgs::srv::MoveCartesian>("/xarm/set_position");
+    end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
+
+    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+
     operational_subscription = this->create_subscription<std_msgs::msg::String>(
-      "move_origin_topic", 10, std::bind(&SetStartingPoint::topic_callback, this, _1)
+      "move_origin_topic", 10, std::bind(&SetStartingPoint::topic_callback, this, std::placeholders::_1)
     );
 
 
     //create client
-    arm_client = this->create_client<xarm_msgs::srv::MoveCartesian>("/xarm/set_position");
-    end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
+
+
+    
 
     std::cout << "set_starting_point node is beginning..." << std::endl;
-    
-    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
-    move_robot_arm(arm_client);
+    message_received = false;
+  
   }
   
  private:
@@ -32,29 +37,47 @@ class SetStartingPoint : public rclcpp::Node {
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
   rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr end_effector_client;
 
-  void topic_callback(const std_msgs::msg::String::SharedPtr msg) const {
-    RCLCPP_INFO(this->get_logger(), "I heard: "%s"", msg->data.c_str());
+  bool message_received;
+  rclcpp::TimerBase::SharedPtr timer_;
 
-    if (msg == "x_up") {
-      //
-    } else if (msg == "x_down") {
-      //
-    } else if (msg == "y_up") {
-      //
-    } else if (msg == "y_down") {
-      //
-    } else if (msg == "set_complete") {
-      //
-    } else {
-      //
+  void timer_callback() {
+    if (message_received) {
+      move_robot_arm(arm_client, "x_up"); // Replace with the desired operational_msg
     }
+  }
+
+  void topic_callback(const std_msgs::msg::String::SharedPtr msg) {
+    RCLCPP_INFO(this->get_logger(), "I heard: %s", msg->data.c_str());
+    message_received = true;
+    move_robot_arm(arm_client, msg->data.c_str());
   }  
 
   //ロボットアームの動作生成
-  void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client) {
+  void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::string operational_msg) const {
+    if(!message_received) {
+      RCLCPP_WARN(this->get_logger(),"メッセージ受信なし。スキップします");
+      return;
+    }
+
     auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
 
-    request->pose = {300, 0, 250, 3.14, 0, 0};
+    std::vector<float> point = {300, 0, 250, 3.14, 0, 0};
+
+    if (operational_msg == "x_up") {
+      point[0] += 20;
+    } else if (operational_msg == "x_down") {
+      point[0] -= 20;
+    } else if (operational_msg == "y_up") {
+      point[1] += 20;
+    } else if (operational_msg == "y_down") {
+      point[1] -= 20;
+    } //else if (operational_msg == "set_complete") {
+
+    //} else {
+
+    //}
+
+    request->pose = point;
     request->speed = 150.0;
     request->acc = 50.0;
     request->mvtime = 0.0;
