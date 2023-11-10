@@ -7,6 +7,7 @@
 #include "origin_coordinate_msgs/msg/origin_coordinates.hpp"
 
 using namespace std::chrono_literals;
+using std::placeholders::_1;
 
 class SetStartingPoint : public rclcpp::Node {
  public:
@@ -32,9 +33,6 @@ class SetStartingPoint : public rclcpp::Node {
   }
   
  private:
-  float x_origin;
-  float y_origin;
-  float z_origin;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr operational_subscription;
 
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
@@ -45,7 +43,7 @@ class SetStartingPoint : public rclcpp::Node {
 
   void timer_callback() {
     if (message_received) {
-      move_robot_arm(arm_client, "x_up"); // Replace with the desired operational_msg
+      move_robot_arm(arm_client, "skip"); // Replace with the desired operational_msg
     }
   }
 
@@ -59,6 +57,9 @@ class SetStartingPoint : public rclcpp::Node {
   void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::string operational_msg) const {
     if(!message_received) {
       RCLCPP_WARN(this->get_logger(),"メッセージ受信なし。スキップします");
+      return;
+    }
+    if (operational_msg == "skip") {
       return;
     }
 

@@ -7,42 +7,45 @@
 #include "origin_coordinate_msgs/msg/origin_coordinates.hpp"
 
 using namespace std::chrono_literals;
+using std::placeholders::_1;
 
 class MainHarvest : public rclcpp::Node {
  public:
-  MainHarvest() : Node("main_harvest", rclcpp::NodeOptions()){
+  MainHarvest() : Node("main_harvest", rclcpp::NodeOptions()),message_received(false){
     arm_client = this->create_client<xarm_msgs::srv::MoveCartesian>("/xarm/set_position");
     end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
 
-    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+    //auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
 
-    coordinates_subscription = this->create_subscription<origin_coordinate_msgs::msg::origin_coordinates>(
-      "origin_coordinate_topic", 10, std::bind(&SetStartingPoint::topic_callback, this, std::placeholders::_1)
-    );
 
-    std::vector<std::vector<float>> origin_point = {x_origin, y_origin, z_origin, 3.14, 0, 0};
+    coordinates_subscription = this->create_subscription<origin_coordinate_msgs::msg::OriginCoordinates>(
+      "origin_points_topic", 10, std::bind(&MainHarvest::set_coordinates, this, _1)
+    );      
 
+    origin_point.push_back({x_origin, y_origin, z_origin, 3.14, 0, 0});
+
+    //レタスの位置の配列作成
     for (int i = 0; i < 3; i++) {
       float y;
 
       if (i == 1) {
         y = y_origin + 30;
       } else {
-        y = installation_point_list[i - 1] + 50;
+        y = installation_point_list[i - 1][1] - 50.0;
       }
 
       std::vector<float> point = {x_origin, y, z_origin, 3.14, 0, 0};
       installation_point_list.push_back(point);
     }
 
+    
+
     //move_arm(arm_client, origin_point); //move origin point befor harvest
 
 
     
 
-    std::cout << "set_starting_point node is beginning..." << std::endl;
-    message_received = false;
-  
+    std::cout << "main harvest node is beginning..." << std::endl;
   }
   
  private:
@@ -50,7 +53,7 @@ class MainHarvest : public rclcpp::Node {
   float y_origin;
   float z_origin;
 
-  rclcpp::Subscription<origin_coordinate_msgs::msg::origin_coordinates>::SharedPtr coordinates_subscription;
+  rclcpp::Subscription<origin_coordinate_msgs::msg::OriginCoordinates>::SharedPtr coordinates_subscription;
 
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
   rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr end_effector_client;
@@ -61,36 +64,29 @@ class MainHarvest : public rclcpp::Node {
   std::vector<std::vector<float>> origin_point;
   std::vector<std::vector<float>> installation_point_list;
   const std::vector<std::vector<float>> packing_mechanism_point_list = {
-    {200, 0, 300, 3.14, 0, 0},
-    {100, 385, 108, 3.14, 0, -0.05},
-    {235, 385, 108, 3.14, 0, -0.05},
-    {235, 385, 98, 3.14, 0, -0.05},
-    {235, 385, 98, 3.14, 0, -0.04},
-    {235, 385, 200, 3.14, 0, -0.05} 
+    {100, 0, 300, 3.14, 0, 0},
+    {100, 0, 300, 3.00, 0, -0.05}
   }; //tmp
 
-  void timer_callback() {
-    if (message_received) {
-      move_arm(arm_client, "skip"); // Replace with the desired operational_msg
-    }
-  }
-
-  void set_coordinates(const origin_coordinate_msgs::msg::origin_coordinates::SharedPtr msg) {
-    RCLCPP_INFO(this->get_logger(), "x: %d", msg->data.x(), msg->data.y());
-    x_origin = msg.x;
-    y_origin = msg.y;
-    z_origin = msg.z;
+  void set_coordinates(const origin_coordinate_msgs::msg::OriginCoordinates::SharedPtr msg) {
+    RCLCPP_INFO(this->get_logger(), "point msgs are recieved");
+    x_origin = msg->x;
+    y_origin = msg->y;
+    z_origin = msg->z;
 
     message_received = true;
+
+    move_to_harvest();
+    std::cout << "After move_to_harvest" << std::endl;  // 追加
+
+    while(!message_received && rclcpp::ok()) {
+      rclcpp::spin_some(shared_from_this());
+    }
+
   }  
 
   //ロボットアームの動作生成
   void move_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::vector<float> point) const {
-    if(!message_received) {
-      RCLCPP_WARN(this->get_logger(),"メッセージ受信なし。スキップします");
-      return;
-    }
-
     auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
     request->pose = point;
     request->speed = 150.0;
@@ -115,13 +111,28 @@ class MainHarvest : public rclcpp::Node {
   }
 
   void move_to_harvest () {
-    for (int i = 0; i < installation_point_list.size(); i++) {
+    if(!message_received) {
+      RCLCPP_WARN(this->get_logger(),"メッセージ受信なし。スキップします");
+      return;
+    }
 
-      move_arm(arm_client, installation_point_list[i]);
+    for (size_t i = 0; i < installation_point_list.size(); i++) {
+      float x_tmp_1 = installation_point_list[i][0] - 50.0; 
+      float x_tmp_2 = installation_point_list[i][0] + 50.0;
+      float y_tmp = installation_point_list[i][1];
+
+      move_arm(arm_client, {x_tmp_1, y_tmp, 80, 3.14, 0, 0});
+      auto_open_close(end_effector_client, true);
+      move_arm(arm_client, {x_tmp_2, y_tmp, 80, 3.14, 0, 0});
+      auto_open_close(end_effector_client, false);
+      move_arm(arm_client, {x_tmp_1, y_tmp, 80, 3.14, 0, 0});
+
+      std::cout << "Extraction is complete." << std::endl;
 
       for (const auto &move_point: packing_mechanism_point_list) {
         move_arm(arm_client, move_point);
       }
+      std::cout << "1 loop is finished" << std::endl;
     }
   }
 
@@ -139,7 +150,7 @@ class MainHarvest : public rclcpp::Node {
       show_msg = "close";
     }
 
-    while(!client->wait_for_service(1s)) {
+    while(!client->wait_for_service(-1s)) {
       if(!rclcpp::ok()) {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"サービス待機中に中断されました。終了します。");
         return;
@@ -154,7 +165,12 @@ class MainHarvest : public rclcpp::Node {
 
 int main (int argc, char** argv){
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<MainHarvest>());
+  try {
+    rclcpp::spin(std::make_shared<MainHarvest>());
+  } catch (const std::exception& e) {
+    std::cerr << "Exception in spin: " << e.what() << std::endl;
+  }
+  std::cout << "After spin" << std::endl;  // 追加
   rclcpp::shutdown();
   return 0;
 }
