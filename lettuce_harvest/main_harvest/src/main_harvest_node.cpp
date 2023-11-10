@@ -6,6 +6,8 @@
 
 #include "origin_coordinate_msgs/msg/origin_coordinates.hpp"
 
+#include <unistd.h>
+
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
@@ -15,37 +17,17 @@ class MainHarvest : public rclcpp::Node {
     arm_client = this->create_client<xarm_msgs::srv::MoveCartesian>("/xarm/set_position");
     end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
 
-    //auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+    //auto_open_close(end_effector_client, true);
+
+    //timer_ = create_wall_timer(std::chrono::seconds(1), std::bind(&MainHarvest::timer_callback, this));
 
 
     coordinates_subscription = this->create_subscription<origin_coordinate_msgs::msg::OriginCoordinates>(
       "origin_points_topic", 10, std::bind(&MainHarvest::set_coordinates, this, _1)
-    );      
-
-    origin_point.push_back({x_origin, y_origin, z_origin, 3.14, 0, 0});
-
-    //レタスの位置の配列作成
-    for (int i = 0; i < 3; i++) {
-      float y;
-
-      if (i == 1) {
-        y = y_origin + 30;
-      } else {
-        y = installation_point_list[i - 1][1] - 50.0;
-      }
-
-      std::vector<float> point = {x_origin, y, z_origin, 3.14, 0, 0};
-      installation_point_list.push_back(point);
-    }
-
+    );
     
-
-    //move_arm(arm_client, origin_point); //move origin point befor harvest
-
-
-    
-
-    std::cout << "main harvest node is beginning..." << std::endl;
+    std::cout << "main harvest node no recieve msg, waiting" << std::endl;
   }
   
  private:
@@ -64,9 +46,16 @@ class MainHarvest : public rclcpp::Node {
   std::vector<std::vector<float>> origin_point;
   std::vector<std::vector<float>> installation_point_list;
   const std::vector<std::vector<float>> packing_mechanism_point_list = {
-    {100, 0, 300, 3.14, 0, 0},
-    {100, 0, 300, 3.00, 0, -0.05}
+    {300, 0, 250, 3.14, 0, 0},
+    {300, 0, 250, 3.14, 0, -1.5},
+    {300, 0, 250, 3.14, 0, 0}
   }; //tmp
+
+  //void timer_callback() {
+    //return;
+  //}
+
+  
 
   void set_coordinates(const origin_coordinate_msgs::msg::OriginCoordinates::SharedPtr msg) {
     RCLCPP_INFO(this->get_logger(), "point msgs are recieved");
@@ -76,13 +65,27 @@ class MainHarvest : public rclcpp::Node {
 
     message_received = true;
 
+    //std::cout << x_origin << std::endl;
+
+    origin_point.push_back({x_origin, y_origin, z_origin, 3.14, 0, 0});
+
+    //std::cout << origin_point[0][2] << std::endl; データ受け取りはできている
+
+    for (size_t i = 0; i < 3; i++) {
+      float y;
+      if (i == 0) {
+        y = y_origin - 70.0;
+      } else {
+        y = installation_point_list[i - 1][1] - 100.0;
+      }
+      std::vector<float> point = {x_origin, y, z_origin, 3.14, 0, 0};
+      installation_point_list.push_back(point);
+    }
+    std::cout << "main harvest node is beginning..." << std::endl;
+    move_arm(arm_client, origin_point[0]); //move origin point befor harvest
+
     move_to_harvest();
     std::cout << "After move_to_harvest" << std::endl;  // 追加
-
-    while(!message_received && rclcpp::ok()) {
-      rclcpp::spin_some(shared_from_this());
-    }
-
   }  
 
   //ロボットアームの動作生成
@@ -93,7 +96,7 @@ class MainHarvest : public rclcpp::Node {
     request->acc = 50.0;
     request->mvtime = 0.0;
 
-    while(!client -> wait_for_service(1s)) {
+    while(!client -> wait_for_service(-1s)) {
       std::cout << "while" << std::endl;
       if(!rclcpp::ok()) {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"サービス待機中に中断されました。終了します。");
@@ -121,11 +124,11 @@ class MainHarvest : public rclcpp::Node {
       float x_tmp_2 = installation_point_list[i][0] + 50.0;
       float y_tmp = installation_point_list[i][1];
 
-      move_arm(arm_client, {x_tmp_1, y_tmp, 80, 3.14, 0, 0});
+      move_arm(arm_client, {x_tmp_1, y_tmp, 110, 3.14, 0, 0});
       auto_open_close(end_effector_client, true);
-      move_arm(arm_client, {x_tmp_2, y_tmp, 80, 3.14, 0, 0});
+      move_arm(arm_client, {x_tmp_2, y_tmp, 110, 3.14, 0, 0});
       auto_open_close(end_effector_client, false);
-      move_arm(arm_client, {x_tmp_1, y_tmp, 80, 3.14, 0, 0});
+      move_arm(arm_client, {x_tmp_1, y_tmp, 110, 3.14, 0, 0});
 
       std::cout << "Extraction is complete." << std::endl;
 
@@ -150,7 +153,7 @@ class MainHarvest : public rclcpp::Node {
       show_msg = "close";
     }
 
-    while(!client->wait_for_service(-1s)) {
+    while(!client->wait_for_service(1s)) {
       if(!rclcpp::ok()) {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"サービス待機中に中断されました。終了します。");
         return;
@@ -160,6 +163,7 @@ class MainHarvest : public rclcpp::Node {
 
     std::cout << show_msg << std::endl;
     auto result = client->async_send_request(request);
+    sleep(3);
   }
 };
 
