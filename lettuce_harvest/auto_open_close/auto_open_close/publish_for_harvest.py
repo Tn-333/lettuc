@@ -14,16 +14,17 @@ class PointPubDemo(Node):
     def callback(self):
         msg = OriginCoordinates()
 
-        msg.x = 200.0
+        msg.x = 300.0
         msg.y = 200.0
         msg.z = 100.0
 
-        print("waiting 3s...")
-        time.sleep(3)
+        print("waiting 2s...")
+        time.sleep(2)
 
         self.publisher.publish(msg)
         self.get_logger().info('x: "%s"' % msg.x)
         self.get_logger().info('y: "%s"' % msg.y)
+        self.get_logger().info('z: "%s"' % msg.z)
 
 
 def main(args=None):
