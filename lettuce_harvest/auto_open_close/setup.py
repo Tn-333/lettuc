@@ -23,6 +23,7 @@ setup(
             'open_close_node = auto_open_close.open_close_node:main',
             'open_close_test = auto_open_close.open_close_test_publish:main',
             'demo_pub_for_arm = auto_open_close.publish_for_arm:main',
+            'pub_for_harvest = auto_open_close.publish_for_harvest:main',
         ],
     },
 )
