@@ -7,7 +7,6 @@
 #include "origin_coordinate_msgs/msg/origin_coordinates.hpp"
 
 using namespace std::chrono_literals;
-using std::placeholders::_1;
 
 class SetStartingPoint : public rclcpp::Node {
  public:
@@ -21,6 +20,8 @@ class SetStartingPoint : public rclcpp::Node {
       "move_origin_topic", 10, std::bind(&SetStartingPoint::topic_callback, this, std::placeholders::_1)
     );
 
+    origin_coordinate_publisher = this->create_publisher<origin_coordinate_msgs::msg::OriginCoordinates>("origin_points_topic", 10);
+
 
     //create client
 
@@ -33,7 +34,11 @@ class SetStartingPoint : public rclcpp::Node {
   }
   
  private:
+  mutable float x_origin;
+  mutable float y_origin;
+  mutable float z_origin;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr operational_subscription;
+  rclcpp::Publisher<origin_coordinate_msgs::msg::OriginCoordinates>::SharedPtr origin_coordinate_publisher;
 
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
   rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr end_effector_client;
@@ -43,7 +48,7 @@ class SetStartingPoint : public rclcpp::Node {
 
   void timer_callback() {
     if (message_received) {
-      move_robot_arm(arm_client, "skip"); // Replace with the desired operational_msg
+      move_robot_arm(arm_client, "x_up"); // Replace with the desired operational_msg
     }
   }
 
@@ -53,13 +58,22 @@ class SetStartingPoint : public rclcpp::Node {
     move_robot_arm(arm_client, msg->data.c_str());
   }  
 
+  void publish_points() const {
+    auto point = origin_coordinate_msgs::msg::OriginCoordinates();
+    point.x = SetStartingPoint::x_origin;
+    point.y = SetStartingPoint::y_origin;
+    point.z = SetStartingPoint::z_origin;
+
+
+    RCLCPP_INFO(this->get_logger(), "x: '%d'",point.x);
+    RCLCPP_INFO(this->get_logger(), "y: '%d'",point.y);
+    origin_coordinate_publisher->publish(point);
+  }
+
   //ロボットアームの動作生成
   void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::string operational_msg) const {
     if(!message_received) {
       RCLCPP_WARN(this->get_logger(),"メッセージ受信なし。スキップします");
-      return;
-    }
-    if (operational_msg == "skip") {
       return;
     }
 
@@ -75,11 +89,13 @@ class SetStartingPoint : public rclcpp::Node {
       point[1] += 20;
     } else if (operational_msg == "y_down") {
       point[1] -= 20;
-    } //else if (operational_msg == "set_complete") {
+    } else if (operational_msg == "set_complete") {
+      x_origin = point[0];
+      y_origin = point[1];
+      z_origin = point[2];
 
-    //} else {
-
-    //}
+      publish_points();
+    }
 
     request->pose = point;
     request->speed = 150.0;
