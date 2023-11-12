@@ -128,7 +128,8 @@ class MainHarvest : public rclcpp::Node {
       auto_open_close(end_effector_client, true);
       move_arm(arm_client, {x_tmp_2, y_tmp, 110, 3.14, 0, 0});
       auto_open_close(end_effector_client, false);
-      move_arm(arm_client, {x_tmp_1, y_tmp, 110, 3.14, 0, 0});
+      move_arm(arm_client, {x_tmp_2, y_tmp, 150, 3.14, 0, 0});
+      move_arm(arm_client, {x_tmp_1, y_tmp, 150, 3.14, 0, 0});
 
       std::cout << "Extraction is complete." << std::endl;
 
