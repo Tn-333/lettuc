@@ -26,11 +26,17 @@ find_package(std_msgs REQUIRED)
 add_executable(set_starting_point_node src/set_starting_point_node.cpp)
 ament_target_dependencies(set_starting_point_node rclcpp xarm_msgs origin_coordinate_msgs std_msgs)
 
-target_include_directories(set_starting_point_node PUBLIC
+add_executable(set_point_node_improved_ver src/set_point_node_improved_ver.cpp)
+ament_target_dependencies(set_point_node_improved_ver rclcpp xarm_msgs origin_coordinate_msgs std_msgs)
+
+target_include_directories(
+  set_starting_point_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-install(TARGETS set_starting_point_node
+install(TARGETS 
+  set_starting_point_node
+  set_point_node_improved_ver
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

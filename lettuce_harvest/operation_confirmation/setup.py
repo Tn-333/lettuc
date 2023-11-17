@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'auto_open_close'
+package_name = 'operation_confirmation'
 
 setup(
     name=package_name,
@@ -20,9 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'open_close_node = auto_open_close.open_close_node:main',
-            'open_close_test = auto_open_close.open_close_test_publish:main',
-            'demo_pub_for_arm = auto_open_close.publish_for_arm:main',
+            'image_pro_test_node = operation_confirmation.image_pro_test_node:main',
+            'publish_for_set_origin = operation_confirmation.publish_for_arm:main',
         ],
     },
 )
