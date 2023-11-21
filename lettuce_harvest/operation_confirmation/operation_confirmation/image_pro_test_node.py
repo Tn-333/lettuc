@@ -14,8 +14,9 @@ class DemoPublish(Node):
         self.publisher_ = self.create_publisher(String, 'move_origin_topic', 10)
         self.subscription = self.create_subscription(Bool, "feedback_topic", self.recieve_flag, 10)
         self.flag = True
+        self.set_completed = False
 
-        timer_period = 5.0  # seconds
+        timer_period = 3.0  # seconds
         self.timer = self.create_timer(timer_period, self.callback)
         self.i = 1
 
@@ -24,6 +25,9 @@ class DemoPublish(Node):
         self.flag = msg.data
 
     def callback(self):
+        if not self.flag:
+            return
+        
         msg = String()
 
         if self.i == 1:
@@ -36,6 +40,7 @@ class DemoPublish(Node):
             msg.data = "x_down"
         elif self.i == 5:
             msg.data = "set_complete"
+            self.set_completed = True
 
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing: "%s"' % msg.data)

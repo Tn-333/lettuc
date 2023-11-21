@@ -18,7 +18,7 @@ class SetStartingPoint : public rclcpp::Node {
     arm_client = this->create_client<xarm_msgs::srv::MoveCartesian>("/xarm/set_position");
     end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
 
-    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+    //auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
 
     operational_subscription = this->create_subscription<std_msgs::msg::String>(
       "move_origin_topic", 10, std::bind(&SetStartingPoint::topic_callback, this, _1)
@@ -50,6 +50,8 @@ class SetStartingPoint : public rclcpp::Node {
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
   rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr end_effector_client;
 
+  std::vector<float> point = {300, 0, 250, 3.14, 0, 0};
+
   bool message_received;
 
 
@@ -66,8 +68,8 @@ class SetStartingPoint : public rclcpp::Node {
     point.z = SetStartingPoint::z_origin;
 
 
-    RCLCPP_INFO(this->get_logger(), "x: '%d'",point.x);
-    RCLCPP_INFO(this->get_logger(), "y: '%d'",point.y);
+    RCLCPP_INFO(this->get_logger(), "publish:x_origin = '%f'",point.x);
+    RCLCPP_INFO(this->get_logger(), "publish:y_origin = '%f'",point.y);
     origin_coordinate_publisher->publish(point);
   }
 
@@ -80,15 +82,8 @@ class SetStartingPoint : public rclcpp::Node {
   }
 
   //ロボットアームの動作生成
-  void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::string operational_msg) const {
-    if(!message_received) {
-      RCLCPP_WARN(this->get_logger(),"メッセージ受信なし。スキップします");
-      return;
-    }
-
+  void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::string operational_msg) {
     auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
-
-    std::vector<float> point = {300, 0, 250, 3.14, 0, 0};
 
     if (operational_msg == "x_up") {
       point[0] += 20;
