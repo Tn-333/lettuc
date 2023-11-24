@@ -1,0 +1,3 @@
+ros2 launch harvest_studio check_op_without_camera.xml
+
+メイン収穫ノード、原点定義用動作ノード、テスト用方向指示を配信する

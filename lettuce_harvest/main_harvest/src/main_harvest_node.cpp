@@ -18,7 +18,7 @@ class MainHarvest : public rclcpp::Node {
     end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
 
     move_arm(arm_client, {300, 0, 250, 3.14, 0, 0});
-    //auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
     //auto_open_close(end_effector_client, true);
 
     //timer_ = create_wall_timer(std::chrono::seconds(1), std::bind(&MainHarvest::timer_callback, this));
@@ -126,13 +126,13 @@ class MainHarvest : public rclcpp::Node {
       float y_tmp = installation_point_list[i][1];
 
       move_arm(arm_client, {x_tmp_1, y_tmp, 110, 3.14, 0, 0});
-      //auto_open_close(end_effector_client, true);
+      auto_open_close(end_effector_client, true);
       move_arm(arm_client, {x_tmp_2, y_tmp, 110, 3.14, 0, 0});
-      //auto_open_close(end_effector_client, false);
+      auto_open_close(end_effector_client, false);
       move_arm(arm_client, {x_tmp_2, y_tmp, 150, 3.14, 0, 0});
       move_arm(arm_client, {x_tmp_1, y_tmp, 150, 3.14, 0, 0});
 
-      std::cout << "Extraction is complete." << std::endl;
+      std::cout << "Harvest is complete." << std::endl;
 
       for (const auto &move_point: packing_mechanism_point_list) {
         move_arm(arm_client, move_point);
