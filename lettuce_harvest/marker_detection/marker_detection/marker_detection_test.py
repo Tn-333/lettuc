@@ -1,4 +1,3 @@
-from sys import flags
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
@@ -6,16 +5,11 @@ from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge
 import numpy as np
-from std_msgs.msg import String
 
 class ImgReceiver(Node):
 
     def __init__(self):
         super().__init__('img_receiver')
-
-        self.x_for_determination = 0
-        self.y_for_determination = 0
-        self.flag = True
 
         self.br = CvBridge()
         self.subscription = self.create_subscription(
@@ -27,12 +21,6 @@ class ImgReceiver(Node):
         self.publisher = self.create_publisher(
             Image,
             'processed', 10)
-        
-        
-        self.instruction_publisher = self.create_publisher(String, "move_origin_topic", 10)
-        timer_period = 5.0
-        self.timer = self.create_timer(timer_period, self.command_movement)
-
 
     def image_callback(self, data):
         ##self.get_logger().info('画像を取得しました！')
@@ -73,32 +61,9 @@ class ImgReceiver(Node):
             # 中心座標をログに出力
             self.get_logger().info(f'赤い円の中心座標: {center}')
 
-            self.x_for_determination = x
-            self.y_for_determination = y
-
         result_msg = self.br.cv2_to_imgmsg(source, 'bgr8')
         self.publisher.publish(result_msg)
         ##self.get_logger().info('画像を公開しました！')
-
-    def command_movement(self):
-        msg = String()
-        ##if not self.flag:
-            ##return
-
-        if self.y_for_determination < 130:
-            msg.data = "x_up"
-        elif self.y_for_determination > 180:
-            msg.data = "x_down"
-        
-        
-
-
-        self.instruction_publisher.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
-        self.flag = False
-
-
-
 
 def main():
     rclpy.init()
@@ -108,4 +73,3 @@ def main():
     except KeyboardInterrupt:
         pass
     rclpy.shutdown()
-

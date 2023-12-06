@@ -1,5 +1,4 @@
 <launch>
-  <node pkg = "marker_detection" exec = "" output = "screen"/>
   <node pkg = "rqt_image_view" exec = "rqt_image_view" output = "screen"/>
   <node pkg = "v4l2_camera" exec = "v4l2_camera_node"/>
 </launch>

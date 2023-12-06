@@ -25,6 +25,8 @@ class DemoPublish(Node):
 
     def callback(self):
         msg = String()
+        if not self.flag:
+            return
 
         if self.i == 1:
             msg.data = "y_up"
