@@ -1,3 +1,10 @@
 ros2 launch harvest_studio check_op_without_camera.xml
 
 メイン収穫ノード、原点定義用動作ノード、テスト用方向指示を配信する
+
+ros2 launch harvest_studio check_camera_operation.xml
+
+カメラ映像配信ノードと映像表示ノードを起動（画像処理ノードは含まれない）
+
+ros2 launch harvest_studio set_origin_test_with_camera.xml
+原点定義ノードと画像処理ノードの動作確認

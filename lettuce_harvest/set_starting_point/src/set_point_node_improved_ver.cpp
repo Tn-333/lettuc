@@ -20,6 +20,10 @@ class SetStartingPoint : public rclcpp::Node {
 
     //auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
 
+    marker_detection_subscription = this->create_subscription<std_msgs::msg::Bool>(
+      "marker_found_topic", 10, std::bind(&SetStartingPoint::marker_detection_callback, this, _1)
+    );
+
     operational_subscription = this->create_subscription<std_msgs::msg::String>(
       "move_origin_topic", 10, std::bind(&SetStartingPoint::topic_callback, this, _1)
     );
@@ -34,6 +38,7 @@ class SetStartingPoint : public rclcpp::Node {
     
 
     std::cout << "set_starting_point node is beginning..." << std::endl;
+    move_arm(arm_client, point); //初期位置へ移動
     message_received = false;
   
   }
@@ -42,17 +47,47 @@ class SetStartingPoint : public rclcpp::Node {
   mutable float x_origin;
   mutable float y_origin;
   mutable float z_origin;
+
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr marker_detection_subscription;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr operational_subscription;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr feedback_publisher;
+
+  //マーカー検知用のフィードバック追加してもいいかも
+
   rclcpp::Publisher<origin_coordinate_msgs::msg::OriginCoordinates>::SharedPtr origin_coordinate_publisher;
 
 
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
   rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr end_effector_client;
 
-  std::vector<float> point = {300, 0, 250, 3.14, 0, 0};
+  std::vector<float> point = {300, -200, 400, 3.14, 0, 0};
 
   bool message_received;
+  bool is_marker_detected = false;
+
+  void marker_detection_callback(std_msgs::msg::Bool::SharedPtr msg) {
+    //RCLCPP_INFO(this->get_logger(), "marker was found");
+    is_marker_detected = msg->data;
+
+    float x_max = 350;
+    float y_max = 220; //状況によって変更,普段は420
+
+    if (!is_marker_detected) {
+      if (point[1] <= y_max) {
+        move_arm(arm_client, point);
+        point[1] += 150;
+      } else if (point[0] <= x_max){
+        point[1] = -220;
+        move_arm(arm_client, point);
+        point[0] += 100;
+      }
+      if (point[0] >= x_max && point[1] >= y_max) {
+        std::cout << "marker was not found... try again" << std::endl;
+        return;
+      }
+      //give_feedback();
+    }
+  }
 
 
   void topic_callback(const std_msgs::msg::String::SharedPtr msg) {
@@ -79,6 +114,32 @@ class SetStartingPoint : public rclcpp::Node {
     message.data = true;
     RCLCPP_INFO(this -> get_logger(), "Arm movement is complete");
     feedback_publisher -> publish(message);
+  }
+
+
+  void move_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::vector<float> point_to_move) {
+    auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
+
+    request->pose = point_to_move;
+    request->speed = 150.0;
+    request->acc = 50.0;
+    request->mvtime = 0.0;
+
+    while(!client -> wait_for_service(1s)) {
+      std::cout << "while" << std::endl;
+      if(!rclcpp::ok()) {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"サービス待機中に中断されました。終了します。");
+        return;
+      }
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"サービスが利用できません、再度待機中");
+    }
+
+    auto future = client -> async_send_request(request);
+    auto status = future.wait_for(3.5s);
+
+    if (status == std::future_status::ready) {
+      RCLCPP_INFO(this->get_logger(),"Responce: %s", future.get() -> message.c_str());
+    }
   }
 
   //ロボットアームの動作生成

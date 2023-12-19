@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'marker_detection_node = marker_detection.marker_detection_node:main',
             'marker_test = marker_detection.marker_detection_test:main',
+            'ar_marker_node = marker_detection.ar_marker_node:main',
         ],
     },
 )

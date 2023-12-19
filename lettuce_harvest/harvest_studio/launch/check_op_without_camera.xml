@@ -1,5 +1,4 @@
 <launch>
-  <node pkg = "set_starting_point" exec = "set_point_node_improved_ver" output = "screen"/>
+  <node pkg = "auto_open_close" exec = "publish_for_harvest" output = "screen"/>
   <node pkg = "main_harvest" exec = "main_harvest_node" output = "screen"/>
-  <node pkg = "operation_confirmation" exec = "image_pro_test_node" output = "screen"/>
 </launch>
