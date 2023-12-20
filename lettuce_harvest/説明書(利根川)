@@ -8,3 +8,9 @@ ros2 launch harvest_studio check_camera_operation.xml
 
 ros2 launch harvest_studio set_origin_test_with_camera.xml
 原点定義ノードと画像処理ノードの動作確認
+
+ros2 launch harvest_studio set_origin_impro.xml
+上の改善版
+
+ros2 launch harvest_studio activate_harvest_system.xml
+システムすべてを起動する、収穫用

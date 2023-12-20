@@ -17,8 +17,8 @@ class MainHarvest : public rclcpp::Node {
     arm_client = this->create_client<xarm_msgs::srv::MoveCartesian>("/xarm/set_position");
     end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
 
-    move_arm(arm_client, {300, 0, 250, 3.14, 0, 0});
-    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+    //move_arm(arm_client, {300, 0, 250, 3.14, 0, 0});
+    //auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
     //auto_open_close(end_effector_client, true);
 
     //timer_ = create_wall_timer(std::chrono::seconds(1), std::bind(&MainHarvest::timer_callback, this));
@@ -75,7 +75,7 @@ class MainHarvest : public rclcpp::Node {
     for (size_t i = 0; i < 3; i++) {
       float y;
       if (i == 0) {
-        y = y_origin - 70.0;
+        y = y_origin - 150.0;
       } else {
         y = installation_point_list[i - 1][1] - 100.0;
       }
@@ -83,7 +83,7 @@ class MainHarvest : public rclcpp::Node {
       installation_point_list.push_back(point);
     }
     std::cout << "main harvest node is beginning..." << std::endl;
-    move_arm(arm_client, origin_point[0]); //move origin point befor harvest
+    //move_arm(arm_client, origin_point[0]); //move origin point befor harvest
 
     move_to_harvest();
     std::cout << "After move_to_harvest" << std::endl;  // 追加

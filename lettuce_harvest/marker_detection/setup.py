@@ -21,8 +21,10 @@ setup(
     entry_points={
         'console_scripts': [
             'marker_detection_node = marker_detection.marker_detection_node:main',
-            'marker_test = marker_detection.marker_detection_test:main',
+            'marker_detection_test = marker_detection.marker_detection_test:main',
             'ar_marker_node = marker_detection.ar_marker_node:main',
+            'operation_inst_node = marker_detection.operation_inst_node:main',
+            'qr_code_detection = marker_detection.qr_code_detection_node:main',
         ],
     },
 )

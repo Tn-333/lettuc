@@ -18,7 +18,7 @@ class SetStartingPoint : public rclcpp::Node {
     arm_client = this->create_client<xarm_msgs::srv::MoveCartesian>("/xarm/set_position");
     end_effector_client = this-> create_client<xarm_msgs::srv::SetDigitalIO>("/xarm/set_tgpio_digital");
 
-    //auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
+    auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
 
     marker_detection_subscription = this->create_subscription<std_msgs::msg::Bool>(
       "marker_found_topic", 10, std::bind(&SetStartingPoint::marker_detection_callback, this, _1)
@@ -75,7 +75,7 @@ class SetStartingPoint : public rclcpp::Node {
     if (!is_marker_detected) {
       if (point[1] <= y_max) {
         move_arm(arm_client, point);
-        point[1] += 150;
+        point[1] += 50;
       } else if (point[0] <= x_max){
         point[1] = -220;
         move_arm(arm_client, point);
@@ -147,19 +147,20 @@ class SetStartingPoint : public rclcpp::Node {
     auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
 
     if (operational_msg == "x_up") {
-      point[0] += 20;
+      point[0] += 10;
     } else if (operational_msg == "x_down") {
-      point[0] -= 20;
+      point[0] -= 10;
     } else if (operational_msg == "y_up") {
-      point[1] += 20;
+      point[1] += 10;
     } else if (operational_msg == "y_down") {
-      point[1] -= 20;
+      point[1] -= 10;
     } else if (operational_msg == "set_complete") {
       x_origin = point[0];
       y_origin = point[1];
       z_origin = point[2];
 
       publish_points();
+      std::cout << "published origin coordinates" << std::endl;
       return;
     }
 

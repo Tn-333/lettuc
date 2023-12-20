@@ -46,8 +46,8 @@ class ImgReceiver(Node):
         
         self.instruction_publisher = self.create_publisher(String, "move_origin_topic", 10)
 
-        timer_period = 0.1
-        self.timer = self.create_timer(timer_period, self.marker_msg_callback)
+        ##timer_period = 0.1
+        ##self.timer = self.create_timer(timer_period, self.marker_msg_callback)
 
         #timer_period_commamd = 3.0
         #self.create_timer(timer_period_commamd, self.command_movement)
