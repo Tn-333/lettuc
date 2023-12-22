@@ -12,5 +12,8 @@ ros2 launch harvest_studio set_origin_test_with_camera.xml
 ros2 launch harvest_studio set_origin_impro.xml
 上の改善版
 
+ros2 launch harvest_studio check_main_harvest_operation.xml
+仮の原点座標を配信し、メイン収穫ノードの動作のみを確認する
+
 ros2 launch harvest_studio activate_harvest_system.xml
 システムすべてを起動する、収穫用

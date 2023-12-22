@@ -1,0 +1,4 @@
+<launch>
+  <node pkg = "auto_open_close" exec = "publish_for_harvest" output = "screen"/>
+  <node pkg = "main_harvest" exec = "main_harvest_node" output = "screen" />
+</launch>

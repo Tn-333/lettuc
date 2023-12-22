@@ -7,6 +7,7 @@
 #include "origin_coordinate_msgs/msg/origin_coordinates.hpp"
 
 #include <unistd.h>
+#include <math.h> // M_PI で円周率
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -36,6 +37,9 @@ class MainHarvest : public rclcpp::Node {
   float y_origin;
   float z_origin;
 
+  float cut_x_position = 106;
+  float cut_y_position = -370;
+
   rclcpp::Subscription<origin_coordinate_msgs::msg::OriginCoordinates>::SharedPtr coordinates_subscription;
 
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
@@ -48,9 +52,19 @@ class MainHarvest : public rclcpp::Node {
   std::vector<std::vector<float>> installation_point_list;
   const std::vector<std::vector<float>> packing_mechanism_point_list = {
     {300, 0, 250, 3.14, 0, 0},
-    {300, 0, 250, 3.14, 0, -1.5},
+    {300, 0, 415, 3.14, 0, 0},
+    {300, 0, 415, 3.14, 0, -M_PI / 2},
+    {106, 0, 415, 3.14, 0, -M_PI /2},
+    {106, -354, 415, 3.14, 0, -M_PI /2}, //根切設置位置前
+    {106, -370, 415, 3.14, 0, -M_PI /2}, //根きり設置位置,アーム開く,終わるまで待機
+    {106, -370, 412, 3.14, 0, -M_PI / 2}, 
+    {106, -370, 425, 3.14, 0, -M_PI /2}, //持ち上げ
+    {106, -354, 425, 3.14, 0, -M_PI /2}, //レタス持って戻る、容器片付け動作は後日追加
+    //{106, -354, 425, 3.14, 0, -M_PI /2},
+    {106, 0, 425, 3.14, 0, -M_PI /2},
+    {106, 0, 425, 3.14, 0, 0},
     {300, 0, 250, 3.14, 0, 0}
-  }; //tmp
+  }; 
 
   //void timer_callback() {
     //return;
@@ -121,6 +135,7 @@ class MainHarvest : public rclcpp::Node {
     }
 
     for (size_t i = 0; i < installation_point_list.size(); i++) {
+      int count = 0; //寝切り位置でアームの開閉を判別するための変数
       float x_tmp_1 = installation_point_list[i][0] - 50.0; 
       float x_tmp_2 = installation_point_list[i][0] + 50.0;
       float y_tmp = installation_point_list[i][1];
@@ -136,6 +151,17 @@ class MainHarvest : public rclcpp::Node {
 
       for (const auto &move_point: packing_mechanism_point_list) {
         move_arm(arm_client, move_point);
+        if (move_point[0] == cut_x_position && move_point[1] == cut_y_position) {
+          if (count == 0) {
+            auto_open_close(end_effector_client, true);
+          } else if (count == 1) {
+            auto_open_close(end_effector_client, false);
+          }
+          count++;
+        }
+
+
+        //move_arm(arm_client, move_point);
       }
       std::cout << "1 loop is finished" << std::endl;
     }
