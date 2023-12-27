@@ -47,21 +47,24 @@ class OperationInst(Node):
         self.get_logger().info("x = " + str(self.x))
         self.get_logger().info("y = " + str(self.y))
 
-        if self.y < 200:
-            msg.data = "y_down"
+        if self.y < 240:
+            action = "y_down"
         elif self.y > 250:
-            msg.data = "y_up"
-        elif self.x < 300:
-            msg.data = "x_up"
+            action = "y_up"
+        elif self.x < 340:
+            action = "x_up"
         elif self.x > 350:
-            msg.data = "x_down"
+            action = "x_down"
         else:
-            msg.data = "set_complete"
+            action = "set_complete"
+
+        msg.data = action
 
         self.publisher.publish(msg)
         self.get_logger().info('publishing: "%s"' % msg.data)
         self.start_flag = False
         self.feedback = False
+
 
 
 def main(args=None):

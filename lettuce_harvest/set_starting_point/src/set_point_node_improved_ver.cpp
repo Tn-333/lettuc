@@ -75,7 +75,7 @@ class SetStartingPoint : public rclcpp::Node {
     if (!is_marker_detected) {
       if (point[1] <= y_max) {
         move_arm(arm_client, point);
-        point[1] += 50;
+        point[1] += 100;
       } else if (point[0] <= x_max){
         point[1] = -220;
         move_arm(arm_client, point);
@@ -147,13 +147,13 @@ class SetStartingPoint : public rclcpp::Node {
     auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
 
     if (operational_msg == "x_up") {
-      point[0] += 10;
+      point[0] += 5;
     } else if (operational_msg == "x_down") {
-      point[0] -= 10;
+      point[0] -= 5;
     } else if (operational_msg == "y_up") {
-      point[1] += 10;
+      point[1] += 5;
     } else if (operational_msg == "y_down") {
-      point[1] -= 10;
+      point[1] -= 5;
     } else if (operational_msg == "set_complete") {
       x_origin = point[0];
       y_origin = point[1];
