@@ -34,8 +34,6 @@ class QrCodeReader(Node):
         )
 
         self.marker_found_publisher = self.create_publisher(Bool, "marker_found_topic", 10)
-        timer_period = 0.25
-        self.timer = self.create_timer(timer_period, self.marker_msg_callback)
 
         self.x = None
         self.y = None
@@ -80,12 +78,12 @@ class QrCodeReader(Node):
                 cv2.putText(cv_image, f'Center: ({center_x}, {center_y})', (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
                 
-                ##self.coords_callback()
+                self.coords_callback()
 
-        #self.marker_msg_callback()
+        self.marker_msg_callback()
 
-        if (not (self.x is None)) and (not (self.y is None)):
-            self.coords_callback()
+        #if (not (self.x is None)) and (not (self.y is None)):
+            #self.coords_callback()
 
         # 処理結果を表示
         result_msg = self.br.cv2_to_imgmsg(cv_image, "bgr8")

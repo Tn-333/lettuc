@@ -60,7 +60,7 @@ class SetStartingPoint : public rclcpp::Node {
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
   rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr end_effector_client;
 
-  std::vector<float> point = {300, -200, 400, 3.14, 0, 0};
+  std::vector<float> point = {350, -200, 400, 3.14, 0, 0};
 
   bool message_received;
   bool is_marker_detected = false;
@@ -69,13 +69,13 @@ class SetStartingPoint : public rclcpp::Node {
     //RCLCPP_INFO(this->get_logger(), "marker was found");
     is_marker_detected = msg->data;
 
-    float x_max = 350;
-    float y_max = 220; //状況によって変更,普段は420
+    float x_max = 500;
+    float y_max = 420; //状況によって変更,普段は420
 
     if (!is_marker_detected) {
       if (point[1] <= y_max) {
         move_arm(arm_client, point);
-        point[1] += 100;
+        point[1] += 50;
       } else if (point[0] <= x_max){
         point[1] = -220;
         move_arm(arm_client, point);
@@ -151,9 +151,9 @@ class SetStartingPoint : public rclcpp::Node {
     } else if (operational_msg == "x_down") {
       point[0] -= 5;
     } else if (operational_msg == "y_up") {
-      point[1] += 5;
+      point[1] += 3;
     } else if (operational_msg == "y_down") {
-      point[1] -= 5;
+      point[1] -= 3;
     } else if (operational_msg == "set_complete") {
       x_origin = point[0];
       y_origin = point[1];

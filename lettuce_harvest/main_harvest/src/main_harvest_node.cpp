@@ -86,14 +86,17 @@ class MainHarvest : public rclcpp::Node {
 
     //std::cout << origin_point[0][2] << std::endl; データ受け取りはできている
 
-    for (size_t i = 0; i < 3; i++) {
-      float y;
+    for (size_t i = 0; i < 5; i++) {
+      float x, y ,z;
+
+      z = 90.0; 
       if (i == 0) {
-        y = y_origin - 150.0;
+        x = x_origin - 130.0;
+        y = y_origin - 200.0;
       } else {
-        y = installation_point_list[i - 1][1] - 100.0;
+        y = installation_point_list[i - 1][1] - 150.0;
       }
-      std::vector<float> point = {x_origin, y, z_origin, 3.14, 0, 0};
+      std::vector<float> point = {x, y, z, 3.14, 0, 0};
       installation_point_list.push_back(point);
     }
     std::cout << "main harvest node is beginning..." << std::endl;
@@ -136,15 +139,16 @@ class MainHarvest : public rclcpp::Node {
 
     for (size_t i = 0; i < installation_point_list.size(); i++) {
       int count = 0; //寝切り位置でアームの開閉を判別するための変数
-      float x_tmp_1 = installation_point_list[i][0] - 50.0; 
-      float x_tmp_2 = installation_point_list[i][0] + 50.0;
+      float x_tmp_1 = installation_point_list[i][0] - 105.0;
+      float x_2 = installation_point_list[i][0];
+      //float x_tmp_2 = installation_point_list[i][0] + 50.0;
       float y_tmp = installation_point_list[i][1];
 
       move_arm(arm_client, {x_tmp_1, y_tmp, 110, 3.14, 0, 0});
       auto_open_close(end_effector_client, true);
-      move_arm(arm_client, {x_tmp_2, y_tmp, 110, 3.14, 0, 0});
+      move_arm(arm_client, {x_2, y_tmp, 110, 3.14, 0, 0});
       auto_open_close(end_effector_client, false);
-      move_arm(arm_client, {x_tmp_2, y_tmp, 150, 3.14, 0, 0});
+      move_arm(arm_client, {x_2, y_tmp, 150, 3.14, 0, 0});
       move_arm(arm_client, {x_tmp_1, y_tmp, 150, 3.14, 0, 0});
 
       std::cout << "Harvest is complete." << std::endl;

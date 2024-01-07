@@ -19,7 +19,7 @@ class OperationInst(Node):
         self.feedback_subscription = self.create_subscription(Bool, "feedback_topic", self.recieve_feedback,10)
         
         self.publisher = self.create_publisher(String, "move_origin_topic", 10)
-        timer_period = 0.5
+        timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.operate_arm)
 
         self.x = 0

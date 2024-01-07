@@ -1,7 +1,7 @@
 <launch>
   <node pkg = "rqt_image_view" exec = "rqt_image_view" output = "screen"/>
   <node pkg = "v4l2_camera" exec = "v4l2_camera_node"/>
-  <node pkg = "marker_detection" exec = "qr_code_detection"/>
+  <node pkg = "marker_detection" exec = "qr_code_detection" output = "screen"/>
   <node pkg = "marker_detection" exec = "operation_inst_node" output = "screen" />
   <node pkg = "set_starting_point" exec = "set_point_node_improved_ver" output = "screen"/>
 </launch>
