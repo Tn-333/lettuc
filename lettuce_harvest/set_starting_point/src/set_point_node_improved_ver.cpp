@@ -60,7 +60,7 @@ class SetStartingPoint : public rclcpp::Node {
   rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr arm_client;
   rclcpp::Client<xarm_msgs::srv::SetDigitalIO>::SharedPtr end_effector_client;
 
-  std::vector<float> point = {350, -200, 400, 3.14, 0, 0};
+  std::vector<float> point = {300, -200, 400, 3.14, 0, 0};
 
   bool message_received;
   bool is_marker_detected = false;
@@ -146,14 +146,25 @@ class SetStartingPoint : public rclcpp::Node {
   void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::string operational_msg) {
     auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
 
+    int moving_distance = 20;
+    int short_moving_distance = 3;
+
     if (operational_msg == "x_up") {
-      point[0] += 5;
+      point[0] += (moving_distance - 3);
+    } else if (operational_msg == "x_up_short") {
+      point[0] += short_moving_distance;
     } else if (operational_msg == "x_down") {
-      point[0] -= 5;
+      point[0] -= moving_distance;
+    } else if (operational_msg == "x_down_short") {
+      point[0] -= short_moving_distance;
     } else if (operational_msg == "y_up") {
-      point[1] += 3;
+      point[1] += moving_distance;
+    } else if (operational_msg == "y_up_short") {
+      point[1] += short_moving_distance;
     } else if (operational_msg == "y_down") {
-      point[1] -= 3;
+      point[1] -= (moving_distance - 3);
+    } else if (operational_msg == "y_down_short") {
+      point[1] -= short_moving_distance;
     } else if (operational_msg == "set_complete") {
       x_origin = point[0];
       y_origin = point[1];

@@ -47,13 +47,21 @@ class OperationInst(Node):
         self.get_logger().info("x = " + str(self.x))
         self.get_logger().info("y = " + str(self.y))
 
-        if self.y < 240:
+        if self.y < 230:
             action = "y_down"
-        elif self.y > 250:
+        elif 230 <= self.y < 240:
+            action = "y_down_short"
+        elif 250 < self.y <= 260:
+            action = "y_up_short"
+        elif self.y > 260:
             action = "y_up"
-        elif self.x < 340:
+        elif self.x < 330:
             action = "x_up"
-        elif self.x > 350:
+        elif 330 <= self.x < 340:
+            action = "x_up_short"
+        elif 350 < self.x <= 360:
+            action = "x_down_short"
+        elif self.x > 360:
             action = "x_down"
         else:
             action = "set_complete"

@@ -89,9 +89,9 @@ class MainHarvest : public rclcpp::Node {
     for (size_t i = 0; i < 5; i++) {
       float x, y ,z;
 
-      z = 90.0; 
+      z = 100.0; 
       if (i == 0) {
-        x = x_origin - 130.0;
+        x = x_origin + 20.0;
         y = y_origin - 200.0;
       } else {
         y = installation_point_list[i - 1][1] - 150.0;
