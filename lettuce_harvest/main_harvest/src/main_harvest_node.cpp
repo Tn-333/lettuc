@@ -37,8 +37,9 @@ class MainHarvest : public rclcpp::Node {
   float y_origin;
   float z_origin;
 
-  float cut_x_position = 106;
-  float cut_y_position = -370;
+  float cut_x_position = 147;
+  float cut_y_position = -308.7;
+  float cut_z_position = 415;
 
   rclcpp::Subscription<origin_coordinate_msgs::msg::OriginCoordinates>::SharedPtr coordinates_subscription;
 
@@ -51,19 +52,19 @@ class MainHarvest : public rclcpp::Node {
   std::vector<std::vector<float>> origin_point;
   std::vector<std::vector<float>> installation_point_list;
   const std::vector<std::vector<float>> packing_mechanism_point_list = {
-    {300, 0, 250, 3.14, 0, 0},
-    {300, 0, 415, 3.14, 0, 0},
     {300, 0, 415, 3.14, 0, -M_PI / 2},
-    {106, 0, 415, 3.14, 0, -M_PI /2},
-    {106, -354, 415, 3.14, 0, -M_PI /2}, //根切設置位置前
-    {106, -370, 415, 3.14, 0, -M_PI /2}, //根きり設置位置,アーム開く,終わるまで待機
-    {106, -370, 412, 3.14, 0, -M_PI / 2}, 
-    {106, -370, 425, 3.14, 0, -M_PI /2}, //持ち上げ
-    {106, -354, 425, 3.14, 0, -M_PI /2}, //レタス持って戻る、容器片付け動作は後日追加
+    {cut_x_position, 0, cut_z_position, 3.14, 0, -M_PI /2},
+    {cut_x_position, cut_y_position + 200, cut_z_position + 300, 3.14, 0, -M_PI /2}, //根切設置位置前
+    {cut_x_position, cut_y_position, cut_z_position + 300, 3.14, 0, -M_PI /2},// 0 
+    {cut_x_position, cut_y_position - 50, cut_z_position + 300, 3.14, 0, -M_PI / 2},
+    {cut_x_position, cut_y_position, cut_z_position + 300, 3.14, 0, -M_PI / 2},//1
+    {cut_x_position, cut_y_position, cut_z_position, 3.14, 0, -M_PI / 2}, //根きり設置位置,アーム開く,終わるまで待機 2
+    {cut_x_position, cut_y_position + 100, cut_z_position, 3.14, 0, -M_PI /2}, //持ち上げ 3
+    {cut_x_position, cut_y_position + 100, cut_z_position, 3.14, 0, -M_PI /2}, //レタス持って戻る、容器片付け動作は後日追加
     //{106, -354, 425, 3.14, 0, -M_PI /2},
-    {106, 0, 425, 3.14, 0, -M_PI /2},
-    {106, 0, 425, 3.14, 0, 0},
-    {300, 0, 250, 3.14, 0, 0}
+    {cut_x_position, 0, 425, 3.14, 0, -M_PI /2}
+    //{cut_x_position, 0, 425, 3.14, 0, -M_PI /2}
+    //{cut_x_position, 0, 250, 3.14, 0, 0}
   }; 
 
   //void timer_callback() {
@@ -89,14 +90,16 @@ class MainHarvest : public rclcpp::Node {
     for (size_t i = 0; i < 5; i++) {
       float x, y ,z;
 
-      z = 100.0; 
+      z = 125.0; 
       if (i == 0) {
         x = x_origin + 20.0;
-        y = y_origin - 200.0;
+        //y = y_origin - 200.0;
+        y = y_origin - 100;
       } else {
         y = installation_point_list[i - 1][1] - 150.0;
       }
-      std::vector<float> point = {x, y, z, 3.14, 0, 0};
+      //std::vector<float> point = {x, y, z, 3.14, 0, 0}; 角度を変更
+      std::vector<float> point = {x, y, z, 3.14, 0, -M_PI / 2};
       installation_point_list.push_back(point);
     }
     std::cout << "main harvest node is beginning..." << std::endl;
@@ -139,29 +142,43 @@ class MainHarvest : public rclcpp::Node {
 
     for (size_t i = 0; i < installation_point_list.size(); i++) {
       int count = 0; //寝切り位置でアームの開閉を判別するための変数
-      float x_tmp_1 = installation_point_list[i][0] - 105.0;
+      //float x_tmp_1 = installation_point_list[i][0] - 130.0;
       float x_2 = installation_point_list[i][0];
-      //float x_tmp_2 = installation_point_list[i][0] + 50.0;
-      float y_tmp = installation_point_list[i][1];
+      float y_tmp_1 = installation_point_list[i][1] + 160.0;
+      float y_tmp_2 = installation_point_list[i][1];
+      float z_tmp = installation_point_list[i][2];
+      float z_tmp_2 = installation_point_list[i][2] + 200;
+      float harvesting_angle = -M_PI / 2;
 
-      move_arm(arm_client, {x_tmp_1, y_tmp, 110, 3.14, 0, 0});
+      if (i != 0) {
+        move_arm(arm_client, installation_point_list[i - 1]); //根切りとの衝突避けるために一つ前のところに移動する
+      }
+
+      move_arm(arm_client, {x_2, y_tmp_1, z_tmp, 3.14, 0, harvesting_angle});
       auto_open_close(end_effector_client, true);
-      move_arm(arm_client, {x_2, y_tmp, 110, 3.14, 0, 0});
+      move_arm(arm_client, {x_2, y_tmp_2, z_tmp, 3.14, 0, harvesting_angle});
       auto_open_close(end_effector_client, false);
-      move_arm(arm_client, {x_2, y_tmp, 150, 3.14, 0, 0});
-      move_arm(arm_client, {x_tmp_1, y_tmp, 150, 3.14, 0, 0});
+      move_arm(arm_client, {x_2, y_tmp_2, z_tmp_2, 3.14, 0, harvesting_angle});
+      //move_arm(arm_client, {x_2, y_tmp_1, z_tmp_2, 3.14, 0, harvesting_angle});
 
       std::cout << "Harvest is complete." << std::endl;
 
       for (const auto &move_point: packing_mechanism_point_list) {
         move_arm(arm_client, move_point);
         if (move_point[0] == cut_x_position && move_point[1] == cut_y_position) {
-          if (count == 0) {
+          if (count == 2) {
+            std::cout << "cutting" <<std::endl;
+            sleep(5);//auto_open_close(end_effector_client, true);
             auto_open_close(end_effector_client, true);
-          } else if (count == 1) {
+          } else if (count == 2) {
+            std::cout << "cutting is finished" << std::endl;
+            
             auto_open_close(end_effector_client, false);
           }
           count++;
+        }
+        if ((move_point[0] == cut_x_position) && (move_point[2] == 425)) {
+          auto_open_close(end_effector_client, false);
         }
 
 

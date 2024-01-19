@@ -14,9 +14,9 @@ class PointPubDemo(Node):
     def callback(self):
         msg = OriginCoordinates()
 
-        msg.x = 300.0
+        msg.x = 400.0
         msg.y = 200.0
-        msg.z = 100.0
+        msg.z = 150.0
 
         print("waiting 2s...")
         time.sleep(2)

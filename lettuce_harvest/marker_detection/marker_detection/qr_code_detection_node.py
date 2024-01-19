@@ -39,6 +39,14 @@ class QrCodeReader(Node):
         self.y = None
         self.marker_found = False
 
+    def callback(self):
+        if (self.x is None) or (self.y is None):
+            self.marker_msg_callback()
+            return
+        
+        self.marker_msg_callback()
+        self.coords_callback()
+
     def coords_callback(self):
         msgs = MarkerCoordinates()
 
@@ -78,9 +86,10 @@ class QrCodeReader(Node):
                 cv2.putText(cv_image, f'Center: ({center_x}, {center_y})', (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
                 
-                self.coords_callback()
+                #self.coords_callback()
 
-        self.marker_msg_callback()
+        #self.marker_msg_callback()
+        self.callback()
 
         #if (not (self.x is None)) and (not (self.y is None)):
             #self.coords_callback()

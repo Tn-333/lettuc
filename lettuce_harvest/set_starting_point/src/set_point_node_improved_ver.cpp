@@ -21,7 +21,7 @@ class SetStartingPoint : public rclcpp::Node {
     auto_open_close(end_effector_client, false); //電源を入れると勝手に開くので閉じさせる
 
     marker_detection_subscription = this->create_subscription<std_msgs::msg::Bool>(
-      "marker_found_topic", 10, std::bind(&SetStartingPoint::marker_detection_callback, this, _1)
+      "marker_found_topic_2", 10, std::bind(&SetStartingPoint::marker_detection_callback, this, _1)
     );
 
     operational_subscription = this->create_subscription<std_msgs::msg::String>(
@@ -71,11 +71,12 @@ class SetStartingPoint : public rclcpp::Node {
 
     float x_max = 500;
     float y_max = 420; //状況によって変更,普段は420
+    int y_move_distance = 80; //実験的に変更する
 
     if (!is_marker_detected) {
       if (point[1] <= y_max) {
         move_arm(arm_client, point);
-        point[1] += 50;
+        point[1] += y_move_distance;
       } else if (point[0] <= x_max){
         point[1] = -220;
         move_arm(arm_client, point);
@@ -85,6 +86,7 @@ class SetStartingPoint : public rclcpp::Node {
         std::cout << "marker was not found... try again" << std::endl;
         return;
       }
+      //sleep(3);
       //give_feedback();
     }
   }
@@ -146,11 +148,12 @@ class SetStartingPoint : public rclcpp::Node {
   void move_robot_arm(rclcpp::Client<xarm_msgs::srv::MoveCartesian>::SharedPtr client, std::string operational_msg) {
     auto request = std::make_shared<xarm_msgs::srv::MoveCartesian::Request>();
 
-    int moving_distance = 20;
+    int moving_distance = 30;
+    int adjustment_value = 3;
     int short_moving_distance = 3;
 
     if (operational_msg == "x_up") {
-      point[0] += (moving_distance - 3);
+      point[0] += (moving_distance - adjustment_value);
     } else if (operational_msg == "x_up_short") {
       point[0] += short_moving_distance;
     } else if (operational_msg == "x_down") {
@@ -162,7 +165,7 @@ class SetStartingPoint : public rclcpp::Node {
     } else if (operational_msg == "y_up_short") {
       point[1] += short_moving_distance;
     } else if (operational_msg == "y_down") {
-      point[1] -= (moving_distance - 3);
+      point[1] -= (moving_distance - adjustment_value);
     } else if (operational_msg == "y_down_short") {
       point[1] -= short_moving_distance;
     } else if (operational_msg == "set_complete") {
